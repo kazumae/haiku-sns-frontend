@@ -1,13 +1,14 @@
 'use client';
 
-import { Haiku } from '@/types/haiku';
-import { useState, useEffect } from 'react';
+import { DisplayHaiku } from '@/types/haiku';
+import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import HaikuCard from './HaikuCard';
 import HaikuForm from './HaikuForm';
+import { useHaikus } from '@/hooks/useHaikus';
 
 // サンプルデータ生成関数
-function generateMockHaiku(id: number): Haiku {
+function generateMockHaiku(id: number): DisplayHaiku {
   const samples = [
     {
       first: '夏の月',
@@ -50,39 +51,31 @@ function generateMockHaiku(id: number): Haiku {
 }
 
 type Props = {
-  initialHaikus: Haiku[];
+  initialHaikus: DisplayHaiku[];
 };
 
 export default function Timeline({ initialHaikus }: Props) {
-  const [haikus, setHaikus] = useState<Haiku[]>(initialHaikus);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
   const { ref, inView } = useInView({
     threshold: 0,
   });
 
-  const loadMoreHaikus = async () => {
-    setLoading(true);
-    
-    const newHaikus = Array.from({ length: 5 }, (_, i) => 
-      generateMockHaiku(page * 5 + i)
-    );
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setHaikus(prev => [...prev, ...newHaikus]);
-    setPage(prev => prev + 1);
-    setLoading(false);
-  };
+  const {
+    data: haikus = initialHaikus,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useHaikus({
+    initialData: initialHaikus,
+  });
 
-  useEffect(() => {
-    if (inView && !loading) {
-      loadMoreHaikus();
-    }
-  }, [inView]);
+  // 無限スクロール
+  if (inView && !isFetchingNextPage && hasNextPage) {
+    fetchNextPage();
+  }
 
   const handleHaikuSubmit = (lines: { first: string; second: string; third: string }) => {
-    const newHaiku: Haiku = {
+    const newHaiku: DisplayHaiku = {
       id: `${Date.now()}`,
       user: {
         id: '999',
@@ -97,7 +90,7 @@ export default function Timeline({ initialHaikus }: Props) {
       createdAt: new Date(),
     };
 
-    setHaikus(prev => [newHaiku, ...prev]);
+    // ここで新しい俳句を追加するロジックを実装する必要があります
   };
 
   return (
@@ -109,7 +102,7 @@ export default function Timeline({ initialHaikus }: Props) {
         ))}
         
         <div ref={ref} className="py-4 text-center">
-          {loading ? (
+          {isFetchingNextPage ? (
             <div className="flex items-center justify-center gap-2 text-gray-500">
               <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                 <circle 

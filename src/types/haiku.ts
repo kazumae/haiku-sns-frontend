@@ -1,8 +1,8 @@
 // フロントエンド表示用の型定義
 export type User = {
-  id: string;
+  id: number;
   name: string;
-  avatarUrl?: string;
+  icon_url: string;
 };
 
 export type Comment = {
@@ -62,9 +62,9 @@ export const convertAPIHaikuToDisplay = (apiHaiku: APIHaiku): DisplayHaiku => {
   return {
     id: apiHaiku.id.toString(),
     user: {
-      id: apiHaiku.user.id.toString(),
+      id: apiHaiku.user.id,
       name: apiHaiku.user.name,
-      avatarUrl: apiHaiku.user.icon_url,
+      icon_url: apiHaiku.user.icon_url,
     },
     firstLine: apiHaiku.first_phrase,
     secondLine: apiHaiku.second_phrase,
@@ -73,4 +73,27 @@ export const convertAPIHaikuToDisplay = (apiHaiku: APIHaiku): DisplayHaiku => {
     comments: [],
     createdAt: new Date(apiHaiku.created_at),
   };
+};
+
+export type CreateHaikuRequest = {
+  first_phrase: string;
+  second_phrase: string;
+  third_phrase: string;
+};
+
+export type Haiku = {
+  id: number;
+  first_phrase: string;
+  second_phrase: string;
+  third_phrase: string;
+  full_text: string;
+  note: string | null;
+  season: string | null;
+  kigo: string | null;
+  posted_at: string;
+  created_at: string;
+  updated_at: string;
+  likes_count: number;
+  comments_count: number;
+  user: User;
 }; 

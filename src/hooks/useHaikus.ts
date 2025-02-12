@@ -1,63 +1,52 @@
-import { useState, useEffect } from 'react';
-import { APIHaiku, DisplayHaiku, PaginateResponse, convertAPIHaikuToDisplay } from '../types/haiku';
-import { apiClient } from '../api/client';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { DisplayHaiku, PaginateResponse, APIHaiku, convertAPIHaikuToDisplay } from '@/types/haiku';
 
-interface UseHaikusProps {
-  skip?: number;
-  limit?: number;
-}
-
-interface UseHaikusReturn {
+type HaikusResponse = {
   haikus: DisplayHaiku[];
-  isLoading: boolean;
-  error: Error | null;
-  total: number;
-}
+  nextPage: number | null;
+};
 
-export const useHaikus = ({ skip = 0, limit = 100 }: UseHaikusProps = {}): UseHaikusReturn => {
-  const [haikus, setHaikus] = useState<DisplayHaiku[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [total, setTotal] = useState(0);
+const fetchHaikus = async (page: number): Promise<HaikusResponse> => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/posts?page=${page}&limit=20`,
+    {
+      headers: {
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_KEY}`,
+      },
+    }
+  );
 
-  useEffect(() => {
-    const fetchHaikus = async () => {
-      try {
-        setIsLoading(true);
-        const params = new URLSearchParams({
-          skip: skip.toString(),
-          limit: limit.toString(),
-        });
+  if (!response.ok) {
+    throw new Error('俳句の取得に失敗しました');
+  }
 
-        const response = await fetch(
-          `${apiClient.baseURL}/api/v1/posts/?${params}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              ...apiClient.headers,
-            },
-          }
-        );
+  const data: PaginateResponse<APIHaiku> = await response.json();
+  return {
+    haikus: data.items.map(convertAPIHaikuToDisplay),
+    nextPage: data.paginate.skip + data.paginate.limit < data.paginate.total ? 
+      Math.floor(data.paginate.skip / data.paginate.limit) + 2 : null
+  };
+};
 
-        if (!response.ok) {
-          throw new Error('俳句の取得に失敗しました');
-        }
+type UseHaikusOptions = {
+  initialData?: DisplayHaiku[];
+};
 
-        const data: PaginateResponse<APIHaiku> = await response.json();
-        const displayHaikus = data.items.map(convertAPIHaikuToDisplay);
-        setHaikus(displayHaikus);
-        setTotal(data.paginate.total);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-      } finally {
-        setIsLoading(false);
-      }
-    };
+export const useHaikus = ({ initialData }: UseHaikusOptions = {}) => {
+  const query = useInfiniteQuery<HaikusResponse>({
+    queryKey: ['haikus'],
+    queryFn: ({ pageParam = 1 }) => fetchHaikus(pageParam),
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialData: initialData ? {
+      pages: [{ haikus: initialData, nextPage: 2 }],
+      pageParams: [1]
+    } : undefined
+  });
 
-    fetchHaikus();
-  }, [skip, limit]);
+  const haikus = query.data?.pages.flatMap(page => page.haikus) ?? [];
 
-  return { haikus, isLoading, error, total };
+  return {
+    ...query,
+    data: haikus
+  };
 }; 

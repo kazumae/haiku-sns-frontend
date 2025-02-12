@@ -1,12 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useCreateHaiku } from '../hooks/useCreateHaiku';
 
-type Props = {
-  onHaikuSubmit: (lines: { first: string; second: string; third: string }) => void;
-};
-
-export default function HaikuForm({ onHaikuSubmit }: Props) {
+export default function HaikuForm() {
+  const { mutate: createHaiku, isPending } = useCreateHaiku();
   const [lines, setLines] = useState({
     first: '',
     second: '',
@@ -19,7 +17,11 @@ export default function HaikuForm({ onHaikuSubmit }: Props) {
     // バリデーション（空の投稿は不可）
     if (!lines.first.trim() || !lines.second.trim() || !lines.third.trim()) return;
 
-    onHaikuSubmit(lines);
+    createHaiku({
+      first_phrase: lines.first.trim(),
+      second_phrase: lines.second.trim(),
+      third_phrase: lines.third.trim(),
+    });
 
     // フォームをクリア
     setLines({
@@ -39,6 +41,7 @@ export default function HaikuForm({ onHaikuSubmit }: Props) {
           onChange={(e) => setLines(prev => ({ ...prev, first: e.target.value }))}
           className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
           maxLength={20}
+          disabled={isPending}
         />
         <input
           type="text"
@@ -47,6 +50,7 @@ export default function HaikuForm({ onHaikuSubmit }: Props) {
           onChange={(e) => setLines(prev => ({ ...prev, second: e.target.value }))}
           className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
           maxLength={20}
+          disabled={isPending}
         />
         <input
           type="text"
@@ -55,14 +59,16 @@ export default function HaikuForm({ onHaikuSubmit }: Props) {
           onChange={(e) => setLines(prev => ({ ...prev, third: e.target.value }))}
           className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
           maxLength={20}
+          disabled={isPending}
         />
       </div>
       <div className="mt-4 flex justify-end">
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={isPending}
         >
-          投稿する
+          {isPending ? '投稿中...' : '投稿する'}
         </button>
       </div>
     </form>

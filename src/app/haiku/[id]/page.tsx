@@ -3,41 +3,42 @@
 import HaikuCard from '@/components/HaikuCard';
 import CommentForm from '@/components/CommentForm';
 import { useState, use } from 'react';
-import { Comment, Haiku } from '@/types/haiku';
+import { DisplayHaiku, Comment } from '@/types/haiku';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import { formatRelativeTime } from '@/utils/date';
-
-// TODO: 実際のAPIから取得するように変更
-const mockHaiku: Haiku = {
-  id: '1',
-  user: {
-    id: '1',
-    name: '松尾芭蕉',
-    avatarUrl: '/images/sample-icon.jpg',
-  },
-  firstLine: '古池や',
-  secondLine: '蛙飛び込む',
-  thirdLine: '水の音',
-  likes: 1000,
-  comments: [
-    {
-      id: '1',
-      user: {
-        id: '2',
-        name: '与謝蕪村',
-      },
-      firstLine: '月明かり',
-      secondLine: '波に揺られて',
-      createdAt: new Date(),
-    }
-  ],
-  createdAt: new Date(),
-};
+import { useHaiku } from '@/hooks/useHaiku';
 
 export default function HaikuPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
-  const [haiku, setHaiku] = useState<Haiku>(mockHaiku);
+  const { data: haiku, isLoading, error } = useHaiku(Number(resolvedParams.id));
+  const [comments, setComments] = useState<Comment[]>([]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-2xl mx-auto py-8 px-4">
+          <div className="animate-pulse">
+            <div className="h-40 bg-gray-200 rounded-lg mb-4"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !haiku) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-2xl mx-auto py-8 px-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            俳句の取得に失敗しました
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleCommentSubmit = (newComment: Omit<Comment, 'id' | 'createdAt'>) => {
     const comment: Comment = {
@@ -46,10 +47,7 @@ export default function HaikuPage({ params }: { params: Promise<{ id: string }> 
       createdAt: new Date(),
     };
 
-    setHaiku(prev => ({
-      ...prev,
-      comments: [...prev.comments, comment],
-    }));
+    setComments(prev => [...prev, comment]);
   };
 
   return (
@@ -86,13 +84,13 @@ export default function HaikuPage({ params }: { params: Promise<{ id: string }> 
           <h2 className="text-xl font-bold mb-4 text-gray-900">コメント</h2>
           <CommentForm haikuId={resolvedParams.id} onCommentSubmit={handleCommentSubmit} />
           <div className="space-y-4 mt-6">
-            {haiku.comments.map((comment) => (
+            {comments.map((comment) => (
               <div key={comment.id} className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center mb-2">
                   <div>
                     <span className="font-medium text-gray-900">{comment.user.name}</span>
                     <div className="text-sm text-gray-500">
-                      {formatRelativeTime(new Date(comment.createdAt))}
+                      {formatRelativeTime(comment.createdAt)}
                     </div>
                   </div>
                 </div>
