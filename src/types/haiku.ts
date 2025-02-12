@@ -1,3 +1,4 @@
+// フロントエンド表示用の型定義
 export type User = {
   id: string;
   name: string;
@@ -12,7 +13,7 @@ export type Comment = {
   createdAt: Date;
 };
 
-export type Haiku = {
+export type DisplayHaiku = {
   id: string;
   user: User;
   firstLine: string;    // 5音
@@ -21,4 +22,55 @@ export type Haiku = {
   likes: number;
   comments: Comment[];
   createdAt: Date;
+};
+
+// API連携用の型定義
+export interface APIHaikuUser {
+  id: number;
+  name: string;
+  icon_url: string;
+}
+
+export interface APIHaiku {
+  id: number;
+  first_phrase: string;
+  second_phrase: string;
+  third_phrase: string;
+  full_text: string;
+  note: string;
+  season: string;
+  kigo: string;
+  posted_at: string;
+  created_at: string;
+  updated_at: string;
+  likes_count: number;
+  comments_count: number;
+  user: APIHaikuUser;
+}
+
+export interface PaginateResponse<T> {
+  paginate: {
+    total: number;
+    skip: number;
+    limit: number;
+  };
+  items: T[];
+}
+
+// APIの俳句データをフロントエンド表示用に変換する関数
+export const convertAPIHaikuToDisplay = (apiHaiku: APIHaiku): DisplayHaiku => {
+  return {
+    id: apiHaiku.id.toString(),
+    user: {
+      id: apiHaiku.user.id.toString(),
+      name: apiHaiku.user.name,
+      avatarUrl: apiHaiku.user.icon_url,
+    },
+    firstLine: apiHaiku.first_phrase,
+    secondLine: apiHaiku.second_phrase,
+    thirdLine: apiHaiku.third_phrase,
+    likes: apiHaiku.likes_count,
+    comments: [],
+    createdAt: new Date(apiHaiku.created_at),
+  };
 }; 
