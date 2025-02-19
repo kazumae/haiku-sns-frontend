@@ -96,4 +96,34 @@ export type Haiku = {
   likes_count: number;
   comments_count: number;
   user: User;
+};
+
+export type APIComment = {
+  id: number;
+  post_id: number;
+  first_phrase: string;
+  second_phrase: string;
+  full_text: string;
+  posted_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DisplayComment = {
+  id: string;
+  postId: string;
+  firstLine: string;
+  secondLine: string;
+  createdAt: Date;
+};
+
+// APIのコメントデータをフロントエンド表示用に変換する関数
+export const convertAPICommentToDisplay = (apiComment: APIComment): DisplayComment => {
+  return {
+    id: apiComment.id.toString(),
+    postId: apiComment.post_id.toString(),
+    firstLine: apiComment.first_phrase,
+    secondLine: apiComment.second_phrase,
+    createdAt: new Date(apiComment.created_at),
+  };
 }; 
