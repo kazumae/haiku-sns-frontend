@@ -14,8 +14,23 @@
   }
 }
 
+@font-face {
+  font-family: '02UtsukushiMincho';
+  src: url('/fonts/02UtsukushiMincho.woff2') format('woff2'),
+       url('/fonts/02UtsukushiMincho.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: '02UtsukushiMincho', serif;
+}
+
+/* 縦書きのスタイル */
+.writing-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  -webkit-text-orientation: upright;
 }

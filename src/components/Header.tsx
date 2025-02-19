@@ -1,18 +1,34 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
-export default function Header() {
+export const Header = () => {
   return (
-    <header className="bg-white shadow-sm">
-      <div className="max-w-2xl mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
-          <Link href="/" className="text-xl font-bold text-gray-900">
-            詠んでみた。
-          </Link>
-          <div className="text-sm text-gray-500">
-            五七五で詠もう
-          </div>
-        </div>
-      </div>
+    <header className="w-full h-[72px] px-6 flex items-center justify-between">
+      <Link 
+        href="/"
+        className="w-[35px] h-[35px] flex items-center justify-center transition-opacity hover:opacity-80"
+      >
+        <Image
+          src="/images/icon/top.svg"
+          alt="トップページへ"
+          width={35}
+          height={35}
+          priority
+        />
+      </Link>
+
+      <Link 
+        href="/help"
+        className="w-[28px] h-[31px] flex items-center justify-center transition-opacity hover:opacity-80"
+      >
+        <Image
+          src="/images/icon/question.svg"
+          alt="ヘルプページへ"
+          width={28}
+          height={31}
+          priority
+        />
+      </Link>
     </header>
   );
-} 
+}; 
