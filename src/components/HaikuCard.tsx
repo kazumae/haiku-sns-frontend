@@ -18,7 +18,7 @@ export const HaikuCard = ({ first, middle, last, likes = 0 }: HaikuCardProps) =>
   };
 
   return (
-    <div className="bg-white rounded-[10px] px-12 py-6 shadow-md w-[290px] h-[420px] flex flex-col justify-between">
+    <div className="bg-white rounded-[10px] px-[35px] py-6 shadow-md w-[290px] h-[420px] flex flex-col justify-between">
       <div className="writing-vertical h-full flex justify-start items-center">
         <div className="flex flex-col text-base tracking-[0.4em] font-['02UtsukushiMincho'] leading-loose text-[#000] mt-8">
           <p>{first}</p>
